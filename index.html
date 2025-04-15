@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Rummy Score App</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="container">
+    <h1>Rummy Score Tracker</h1>
+
+    <!-- Player Setup -->
+    <div id="player-setup">
+      <label>Enter player names (2-6):</label>
+      <input type="text" id="player-names" placeholder="e.g. A,B,C,D" />
+      <br />
+      <button onclick="startGame()">Start Game</button>
+    </div>
+
+    <!-- Score Section -->
+    <div id="score-section" style="display:none;">
+      <h2>Scores</h2>
+
+      <table id="score-table">
+        <thead>
+          <tr id="score-header">
+            <th>Round</th>
+          </tr>
+        </thead>
+        <tbody id="score-body"></tbody>
+      </table>
+
+      <div id="score-inputs"></div>
+
+      <button onclick="addRound()">Add Round</button>
+      <button onclick="undoLastRound()">Undo Last Round</button>
+      <button onclick="resetGame()">Reset</button>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
