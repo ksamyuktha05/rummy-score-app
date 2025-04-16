@@ -1,10 +1,16 @@
 let players = [];
+let activePlayers = [];
 let round = 1;
 let scores = [];
+let scoreLimit = null;
 
 function startGame() {
   const input = document.getElementById("player-names").value;
   players = input.split(",").map(p => p.trim()).filter(p => p !== "");
+  activePlayers = [...players];
+
+  const limitInput = document.getElementById("score-limit").value;
+  scoreLimit = limitInput ? parseInt(limitInput) : null;
 
   if (players.length < 2 || players.length > 6) {
     alert("Please enter between 2 and 6 players.");
@@ -22,7 +28,7 @@ function startGame() {
 
   players.forEach((player, i) => {
     inputDiv.innerHTML += `
-      <div class="player-input">
+      <div class="player-input" id="input-row-${i}">
         <label>${player}:</label>
         <input type="text" id="score-${i}" placeholder="Score / W / D / MD" oninput="handleShortcuts(${i})" />
         <button type="button" class="w-btn" onclick="setShortcut(${i}, 'W')">W</button>
@@ -61,6 +67,11 @@ function addRound() {
   let roundScores = [];
 
   for (let i = 0; i < players.length; i++) {
+    if (!activePlayers.includes(players[i])) {
+      roundScores.push("-");
+      scoreRow.innerHTML += `<td>-</td>`;
+      continue;
+    }
     const input = document.getElementById(`score-${i}`);
     const val = parseInt(input.value);
     if (isNaN(val)) {
@@ -68,14 +79,11 @@ function addRound() {
       return;
     }
     roundScores.push(val);
+    scoreRow.innerHTML += `<td>${val}</td>`;
     input.value = "";
   }
 
   scores.push(roundScores);
-
-  roundScores.forEach(score => {
-    scoreRow.innerHTML += `<td>${score}</td>`;
-  });
 
   const body = document.getElementById("score-body");
   const totalRow = document.getElementById("total-row");
@@ -104,21 +112,32 @@ function updateTotals() {
   for (let i = 0; i < players.length; i++) {
     let total = 0;
     for (let r = 0; r < scores.length; r++) {
-      total += scores[r][i];
+      const score = scores[r][i];
+      if (typeof score === 'number') {
+        total += score;
+      }
     }
-    if (total > highest) {
+    if (total > highest && activePlayers.includes(players[i])) {
       highest = total;
       leaderIndex = i;
     }
-    totalRow.innerHTML += `<td id="total-${i}">${total}</td>`;
+    totalRow.innerHTML += `<td id="total-${i}">${activePlayers.includes(players[i]) ? total : '-'}</td>`;
+
+    if (scoreLimit && total >= scoreLimit && activePlayers.includes(players[i])) {
+      alert(`${players[i]} has been eliminated for reaching ${scoreLimit} points.`);
+      activePlayers = activePlayers.filter(p => p !== players[i]);
+      document.getElementById(`input-row-${i}`).style.display = "none";
+    }
   }
 
   document.getElementById("score-body").appendChild(totalRow);
 
   for (let i = 0; i < players.length; i++) {
     const cell = document.getElementById(`total-${i}`);
-    cell.style.color = i === leaderIndex ? "green" : "#333";
-    cell.style.fontWeight = i === leaderIndex ? "bold" : "normal";
+    if (cell && activePlayers.includes(players[i])) {
+      cell.style.color = i === leaderIndex ? "green" : "#333";
+      cell.style.fontWeight = i === leaderIndex ? "bold" : "normal";
+    }
   }
 }
 
@@ -137,13 +156,17 @@ function undoLastRound() {
     body.removeChild(totalRow.previousSibling);
   }
 
+  activePlayers = [...players];
+  document.querySelectorAll(".player-input").forEach(div => div.style.display = "block");
   updateTotals();
 }
 
 function resetGame() {
   players = [];
+  activePlayers = [];
   round = 1;
   scores = [];
+  scoreLimit = null;
   document.getElementById("score-body").innerHTML = "";
   document.getElementById("score-section").style.display = "none";
 }
